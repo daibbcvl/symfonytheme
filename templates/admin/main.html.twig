@@ -1,5 +1,15 @@
 {% extends "admin/bars.html.twig" %}
 
 {% block contenpage %}
-    <h1>Main</h1>
+    <h1>Hướng dẫn sử dụng
+        <h2>1.Set config số phút cần trừ</h2>
+        <p><a href="{{ path('app_admin_config') }}">Config</a></p>
+
+        <h2>2.Vào time track >> Manage  </h2>
+        <p><a href="{{ path('app_admin_time_track') }}">Manage</a></p>
+
+        <h2>3.Nhấn nút [Tạo dữ liệu] xong chờ 5 phút cho nó tạo xong  </h2>
+        <h2>4.Nhấn nút[Tính công] </h2>
+
+
 {% endblock %}

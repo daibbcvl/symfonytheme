@@ -2,6 +2,8 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Config;
+use App\Entity\DateLog;
 use App\Entity\Role;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -57,5 +59,26 @@ class AppFixtures extends Fixture
 
             $manager->flush();
         }
+
+
+        $config = new Config();
+        if (!$manager->find(Config::class, 1)) {
+            $config = new Config();
+            $config->setName('deduct');
+            $config->setValue(20);
+            $manager->persist($config);
+
+            $manager->flush();
+        }
+        if (!$manager->find(Config::class, 2)) {
+            $deductGroup = DateLog::DEFAULT_DEDUCT_GROUP;
+            $config = new Config();
+            $config->setName('deduct_group');
+            $config->setValue(serialize($deductGroup));
+            $manager->persist($config);
+            $manager->flush();
+        }
+
     }
 }
+

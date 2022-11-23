@@ -38,19 +38,26 @@
                         </li>
                         {% endif %}
                         {% if is_granted("ROLE_WRITER") %}
-                        <li><a><i class="fa fa-bookmark"></i>{{ "backend.menu.categories"|trans }} <span class="fa fa-chevron-down"></span></a>
-                            <ul class="nav child_menu">
-                                <li><a href="{{ path('app_admin_categories') }}">{{ "backend.menu.manage"|trans }}</a></li>
-                            </ul>
-                        </li>
-                        <li><a><i class="fa fa-clipboard"></i> {{ "backend.menu.blog"|trans }} <span class="fa fa-chevron-down"></span></a>
-                            <ul class="nav child_menu">
-                                <li><a href="{{ path('app_admin_blogPosts') }}">{{ "backend.menu.manage"|trans }}</a></li>
-                                {% if is_granted("ROLE_EDITORIAL") %}
-                                    <li><a href="{{ path('app_admin_allhistorique_blogPosts') }}">{{ "backend.menu.history"|trans }}</a></li>
-                                {% endif %}
-                            </ul>
-                        </li>
+
+                            <li><a><i class="fa fa-bookmark"></i>Time track<span class="fa fa-chevron-down"></span></a>
+                                <ul class="nav child_menu">
+                                    <li><a href="{{ path('app_admin_time_track') }}">{{ "backend.menu.manage"|trans }}</a></li>
+                                    <li><a href="{{ path('app_admin_config') }}">Config</a></li>
+                                </ul>
+                            </li>
+{#                        <li><a><i class="fa fa-bookmark"></i>{{ "backend.menu.categories"|trans }} <span class="fa fa-chevron-down"></span></a>#}
+{#                            <ul class="nav child_menu">#}
+{#                                <li><a href="{{ path('app_admin_categories') }}">{{ "backend.menu.manage"|trans }}</a></li>#}
+{#                            </ul>#}
+{#                        </li>#}
+{#                        <li><a><i class="fa fa-clipboard"></i> {{ "backend.menu.blog"|trans }} <span class="fa fa-chevron-down"></span></a>#}
+{#                            <ul class="nav child_menu">#}
+{#                                <li><a href="{{ path('app_admin_blogPosts') }}">{{ "backend.menu.manage"|trans }}</a></li>#}
+{#                                {% if is_granted("ROLE_EDITORIAL") %}#}
+{#                                    <li><a href="{{ path('app_admin_allhistorique_blogPosts') }}">{{ "backend.menu.history"|trans }}</a></li>#}
+{#                                {% endif %}#}
+{#                            </ul>#}
+{#                        </li>#}
                         {% endif %}
                     </ul>
                 </div>

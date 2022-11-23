@@ -1,0 +1,52 @@
+{% extends "admin/bars.html.twig" %}
+
+{% block contenpage %}
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h5> Listing </h5>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+
+                    <div class="x_content">
+                        <div class="row">
+
+                            <dl>
+                                <dt>Mã nhân viên</dt>
+                                <dd>{{ dateLog.employeeCode.employeeCode }}</dd>
+                                <dt>Tên</dt>
+                                <dd>{{ dateLog.employeeCode.name }}</dd>
+
+                                <dt>Ngày</dt>
+                                <dd>{{ dateLog.date|date("d/m/Y") }}</dd>
+                                <dt>Tracks</dt>
+                                <dd> {% for timeTrack in timeTracks %}  {{ timeTrack.timeLog|date('H:i') }}  &nbsp;{% endfor%} </dd>
+                            </dl>
+
+
+
+
+                        </div>
+                        <div class="row">
+                            {{ form_start(form) }}
+                            {{ form_widget(form) }}
+
+                            <button class="btn btn-primary m-btn m-btn--icon" type="submit">
+                                <i class="la la-save"></i>
+                                Lưu
+                            </button>
+                            {{ form_end(form) }}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
