@@ -20,12 +20,11 @@ class TrackCalculator
     }
 
 
-    public function calculate(Employee $employee, array $deductGroup, int  $deduct = 0)
+    public function calculate(array &$overtimeData, Employee $employee, array $deductGroup, int $deduct = 0)
     {
 
         $results = [];
-        if($employee->getTimeTracks()->count() == 0 )
-        {
+        if ($employee->getTimeTracks()->count() == 0) {
             return $results;
         }
         $timeTracks = $employee->getTimeTracks();
@@ -34,28 +33,27 @@ class TrackCalculator
         /** @var TimeTrack $timeTrack */
         foreach ($timeTracks as $timeTrack) {
 
-            if(!array_key_exists($timeTrack->getDate()->format('Y-m-d'), $dateTracks)){
+            if (!array_key_exists($timeTrack->getDate()->format('Y-m-d'), $dateTracks)) {
                 $dateTracks[$timeTrack->getDate()->format('Y-m-d')] = [];
             }
+            $overtimeData[$timeTrack->getDate()->format('Y-m-d')] = $this->isOvertime($timeTrack->getTimeLog());
 
-            if(!in_array($timeTrack->getTimeLog(),$dateTracks[$timeTrack->getDate()->format('Y-m-d')]  ))
-            {
+            if (!in_array($timeTrack->getTimeLog(), $dateTracks[$timeTrack->getDate()->format('Y-m-d')])) {
                 $dateTracks[$timeTrack->getDate()->format('Y-m-d')][] = $timeTrack->getTimeLog();
             }
 
         }
 
 
-
-        if($employee->getDateLogs()->count() == 0)
-        {
+        if ($employee->getDateLogs()->count() == 0) {
             foreach ($dateTracks as $date => $val) {
 
-                if(!in_array( $employee->getDepartment(),$deductGroup)){
+                if (!in_array($employee->getDepartment(), $deductGroup)) {
                     $deduct = 0;
                 }
 
                 $results[$date] = $this->calculateByDate($val, $deduct);
+                //$overtimeData[$date] = $this->isOvertime($val);
             }
         }
 
@@ -66,12 +64,18 @@ class TrackCalculator
     {
         if (count($timeTracks) == 2) {
 
-            return abs($timeTracks[1]- $timeTracks[0]) / 60 - $deduct   ;
+            return abs($timeTracks[1] - $timeTracks[0]) / 60 - $deduct;
         }
         return 0;
     }
 
+    public function isOvertime(int $timestamp)
+    {
+        $hour = intval( date('H', $timestamp));
 
+        return $hour >=22;
+
+    }
 
 
 }

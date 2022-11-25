@@ -79,6 +79,15 @@ class AppFixtures extends Fixture
             $manager->flush();
         }
 
+        if (!$manager->find(Config::class, 3)) {
+
+            $config = new Config();
+            $config->setName('months');
+            $config->setValue(serialize([]));
+            $manager->persist($config);
+            $manager->flush();
+        }
+
     }
 }
 

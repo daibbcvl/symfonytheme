@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Form\Model\DateLogEditModel;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -43,6 +44,10 @@ class DateLogEditFormType extends AbstractType
 
             ->add('type', ChoiceType::class, [
                 'choices' => DateLog::TYPES,
+            ])->
+            add('overtime', CheckboxType::class, [
+                'label'    => 'Được phụ cấp',
+                'required' => false,
             ])
             ->add('note', TextareaType::class, []);
     }

@@ -83,6 +83,11 @@ class DateLog
      */
     private $totalMinutes;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $overtime = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -144,6 +149,18 @@ class DateLog
     public function setTotalMinutes(?int $totalMinutes): self
     {
         $this->totalMinutes = $totalMinutes;
+
+        return $this;
+    }
+
+    public function getOvertime(): ?bool
+    {
+        return $this->overtime;
+    }
+
+    public function setOvertime(bool $overtime): self
+    {
+        $this->overtime = $overtime;
 
         return $this;
     }

@@ -10,6 +10,7 @@ class DateLogEditModel
     public ?string $note;
     public ?int $minute;
     public ?int $hour;
+    public bool $overtime;
 
     public function createFromDateLog(DateLog $dateLog, DateLogEditModel $dateLogEditModel)
     {
@@ -17,6 +18,7 @@ class DateLogEditModel
         $dateLogEditModel->note = $dateLog->getNote();
         $dateLogEditModel->hour = floor($dateLog->getTotalMinutes() / 60);
         $dateLogEditModel->minute = $dateLog->getTotalMinutes() % 60;
+        $dateLogEditModel->overtime = $dateLog->getOvertime();
 
         return $dateLogEditModel;
     }
@@ -26,6 +28,7 @@ class DateLogEditModel
         $dateLog->setType($dateLogEditModel->type);
         $dateLog->setNote($dateLogEditModel->note);
         $dateLog->setTotalMinutes($dateLogEditModel->hour * 60 + $dateLogEditModel->minute );
+        $dateLog->setOvertime($dateLogEditModel->overtime);
         return $dateLog;
     }
 }

@@ -21,7 +21,7 @@ class DateTrackManager
     }
 
 
-    public function bulk(Employee $employee, array $dateTrackData)
+    public function bulk(Employee $employee, array $dateTrackData, array $overtimeData)
     {
         foreach ($dateTrackData as $dt => $totalHours)
         {
@@ -30,6 +30,7 @@ class DateTrackManager
             $dateTrack->setEmployeeCode($employee);
             $dateTrack->setDate($trackedDate);
             $dateTrack->setTotalMinutes($totalHours);
+            $dateTrack->setOvertime($overtimeData[$dt]);
             $this->em->persist($dateTrack);
 
         }
@@ -50,6 +51,7 @@ class DateTrackManager
                 {
                     $result[$i]["value"] = $dateLog->getTotalMinutes();
                     $result[$i]["id"] = $dateLog->getId();
+                    $result[$i]["overtime"] = $dateLog->getOvertime();
                 }
             }
         }

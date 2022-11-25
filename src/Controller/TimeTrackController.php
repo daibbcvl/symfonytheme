@@ -99,7 +99,7 @@ class TimeTrackController extends BaseController
 //
 //        }
 
-        $spreadsheet = IOFactory::load($importDir . "/chamcong.xlsx");
+        $spreadsheet = IOFactory::load($importDir . "/11-2022.xlsx");
 
         if (!empty($spreadsheet)) {
             $contents = $spreadsheet->getActiveSheet()->toArray();
@@ -149,9 +149,10 @@ class TimeTrackController extends BaseController
         $employees = $employeeRepository->findAll();
         foreach ($employees as $employee) {
             if ($employee->getDateLogs()->count() == 0) {
-                $dateTrackData = $trackCalculator->calculate($employee, $deductGroups, intval($config->getValue()));
+                $overtimeData = [];
+                $dateTrackData = $trackCalculator->calculate($overtimeData, $employee, $deductGroups, intval($config->getValue()));
                 if ($dateTrackData) {
-                    $dateTrackManager->bulk($employee, $dateTrackData);
+                    $dateTrackManager->bulk($employee, $dateTrackData, $overtimeData);
                 }
 
             }
@@ -161,34 +162,34 @@ class TimeTrackController extends BaseController
         return $this->redirectToRoute('app_admin_time_track');
     }
 
-    /**
-     * @Route("/admin/time_track/employee/{id}",name="app_admin_time_track_employeee")
-     * @IsGranted("ROLE_WRITER")
-     */
-    public function viewEmployee(Request $request, ImportManager $importManager, EmployeeRepository $employeeRepository, Employee $employee)
-    {
-        $form = $this->createForm(EmployeeDateFormType::class);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $entityManager->persist($form->getData());
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Create sector successfully.');
-            if ($url = $request->get('redirect_url')) {
-                return $this->redirect($url);
-            }
-
-            return $this->redirectToRoute('sector_create');
-        }
-
-
-        return $this->render("admin/time/employee.html.twig", [
-            'form' => $form->createView(),
-
-        ]);
-    }
+//    /**
+//     * @Route("/admin/time_track/employee/{id}",name="app_admin_time_track_employeee")
+//     * @IsGranted("ROLE_WRITER")
+//     */
+//    public function viewEmployee(Request $request, ImportManager $importManager, EmployeeRepository $employeeRepository, Employee $employee)
+//    {
+//        $form = $this->createForm(EmployeeDateFormType::class);
+//        $form->handleRequest($request);
+//
+//        if ($form->isSubmitted() && $form->isValid()) {
+//
+//            $entityManager->persist($form->getData());
+//            $entityManager->flush();
+//
+//            $this->addFlash('success', 'Create sector successfully.');
+//            if ($url = $request->get('redirect_url')) {
+//                return $this->redirect($url);
+//            }
+//
+//            return $this->redirectToRoute('sector_create');
+//        }
+//
+//
+//        return $this->render("admin/time/employee.html.twig", [
+//            'form' => $form->createView(),
+//
+//        ]);
+//    }
 
 
 }

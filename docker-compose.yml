@@ -9,7 +9,7 @@ services:
       - ./docker/mysql/data:/var/lib/mysql
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-      - MYSQL_DATABASE=persistence
+      - MYSQL_DATABASE=symgent
     ports:
       - "3306:3306"
 
@@ -29,6 +29,7 @@ services:
     working_dir: /application
     volumes:
       - .:/application
+      - ./docker/php-fpm/php.ini:/etc/php/7.4/fpm/conf.d/php.ini
 
 
   app_messenger:
