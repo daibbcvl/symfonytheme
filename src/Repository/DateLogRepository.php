@@ -47,4 +47,12 @@ class DateLogRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function deleteAll()
+    {
+        $queryBuilder = $this->createQueryBuilder('date');
+        $query = $queryBuilder->delete()
+            ->getQuery();
+        $query->execute();
+    }
 }

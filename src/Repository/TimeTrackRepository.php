@@ -47,4 +47,12 @@ class TimeTrackRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function deleteAll()
+    {
+        $queryBuilder = $this->createQueryBuilder('tt');
+        $query = $queryBuilder->delete()
+            ->getQuery();
+        $query->execute();
+    }
 }

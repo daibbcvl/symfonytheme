@@ -8,6 +8,9 @@ use App\Form\ConfigType;
 use App\Form\Model\ConfigModel;
 use App\Repository\CategorieRepository;
 use App\Repository\ConfigRepository;
+use App\Repository\DateLogRepository;
+use App\Repository\EmployeeRepository;
+use App\Repository\TimeTrackRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,6 +30,18 @@ class AdminController extends AbstractController
     }
 
 
+    //app_admin_reset
+
+    /**
+     * @Route("/admin/reset",name="app_admin_reset")
+     */
+    public function reset( TimeTrackRepository $timeTrackRepository, DateLogRepository  $dateLogRepository, EmployeeRepository $employeeRepository)
+    {
+        $dateLogRepository->deleteAll();
+        $timeTrackRepository->deleteAll();
+        $employeeRepository->deleteAll();
+        return $this->redirectToRoute('app_admin_index');
+    }
     /**
      * @Route("/admin/config",name="app_admin_config")
      * @IsGranted("ROLE_WRITER")
