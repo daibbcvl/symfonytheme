@@ -8,6 +8,7 @@ use App\Entity\BlogPost;
 use App\Entity\Employee;
 use App\Entity\Historique;
 use App\Entity\OldPost;
+use App\Export\TimeTrackExporter;
 use App\Form\BlogPostEditFormType;
 use App\Form\BlogPostFormType;
 use App\Form\ConfigType;
@@ -34,6 +35,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TimeTrackController extends BaseController
 {
+    const WEEDKDAYS = [
+            'Sunday' => 'CN',
+            'Monday' => 'T2',
+            'Tuesday' => 'T3',
+            'Wednesday' => 'T4',
+            'Thursday' => 'T5',
+            'Friday' => 'T6',
+            'Saturday' => 'T7'
+        ];
 
 
     /**
@@ -42,16 +52,31 @@ class TimeTrackController extends BaseController
      */
     public function index(ImportManager $importManager, DateTrackManager $dateTrackManager, EmployeeRepository $employeeRepository, string $importDir)
     {
+        $dates = [];
+        $month = date('m');
+        $year = date('Y');
+        $weekdays = self::WEEDKDAYS;
+        for ($i = 1; $i <= 31; $i++) {
+            $todayString = "{$year}-{$month}-{$i}";
+            $date = \DateTime::createFromFormat('Y-m-d', $todayString);
+            $dates[$i] = $weekdays[$date->format('l')];
+        }
+
 
         $employees = $employeeRepository->findAll();
 
         $calendars = [];
+
         foreach ($employees as $employee) {
             $calendars[$employee->getId()] = $dateTrackManager->createCalendarData($employee);
         }
 
 
-        return $this->render("admin/time/index.html.twig", ['employees' => $employees, 'calendars' => $calendars]);
+        return $this->render("admin/time/index.html.twig",
+            ['employees' => $employees,
+                'calendars' => $calendars,
+                'dates' => $dates
+            ]);
     }
 
     /**
@@ -61,60 +86,20 @@ class TimeTrackController extends BaseController
     public function createTimeTrack(
         ImportManager       $importManager,
         EmployeeRepository  $employeeRepository,
+        ConfigRepository $configRepository,
         MessageBusInterface $bus,
-
         string              $importDir)
     {
 
-//        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-//        $reader->setReadDataOnly(true);
-//        $spreadsheet = $reader->load($importDir."/chamcong.xlsx");
-//
-//       // $output = shell_exec("ls -lart /application/public/uploads");
-//        //echo "<pre>$output</pre>";
-//
-//        dd($spreadsheet);
 
-//        $inputFileName = $importDir . "/chamcong.xlsx";
-//
-//
-//        $inputFileType = \PhpOffice\PhpSpreadsheet\IOFactory::identify($inputFileName);
-//
-//        $rowCounts = $reader->getRowCount($importDir . "/chamcong.xlsx");
-//
-//
-//        $chunkSize =  100;
-//
-//        $contents = $reader->read($inputFileName, $rowCounts,101, $chunkSize, $inputFileType);
-//
-//        dd($contents);
-//
-//
-//        for ($startRow = 1; $startRow <= $rowCounts; $startRow += $chunkSize) {
-//
-//            $contents = $reader->read($inputFileName, $rowCounts,$startRow, $chunkSize, $inputFileType);
-//            $importManager->createEmployeeFomImportData($contents, $employeeRepository->getAllCodes());
-//            $importManager->createTimeTrackFromImportData($contents, $employeeRepository->findAll());
-//            //$this->addFlash('success', 'Mapped Data');
-//
-//        }
-
-        $spreadsheet = IOFactory::load($importDir . "/11-2022.xlsx");
+        $spreadsheet = $this->createSpread($configRepository, $importDir);
 
         if (!empty($spreadsheet)) {
             $contents = $spreadsheet->getActiveSheet()->toArray();
 
             $data = serialize($contents);
 
-            // dd($data);
-
-
             $bus->dispatch(new ImportMessage($data));
-
-
-            // $importManager->createEmployeeFomImportData($contents, $employeeRepository->getAllCodes());
-            //$importManager->createTimeTrackFromImportData($contents, $employeeRepository->findAll());
-            //$this->addFlash('success', 'Mapped Data');
         } else {
             //$this->invalidReq('Excel file type is invalid.');
         }
@@ -122,45 +107,45 @@ class TimeTrackController extends BaseController
         $this->addFlash('success', 'Time track was calculated');
 
         return $this->redirectToRoute('app_admin_time_track');
-
-        // return $this->render("admin/time/track.html.twig", []);
     }
 
     /**
-     * @Route("/admin/date_track/bulk",name="app_admin_date_track_bulk")
+     * @Route("/admin/time_track/download",name="app_admin_time_track_download")
      * @IsGranted("ROLE_WRITER")
      */
-    public function calculateDateLog(
-        EmployeeRepository $employeeRepository,
-        ConfigRepository   $configRepository,
-        TrackCalculator    $trackCalculator,
-        DateTrackManager   $dateTrackManager): \Symfony\Component\HttpFoundation\RedirectResponse
+    public function download(
+     ImportManager       $importManager,
+        EmployeeRepository  $employeeRepository,
+        ConfigRepository $configRepository,
+        DateTrackManager $dateTrackManager,
+        TimeTrackExporter $exporter,
+        string              $importDir)
     {
 
-        ini_set('max_execution_time', '300'); //300 seconds = 5 minutes
-        set_time_limit(300);
-
-        $config = $configRepository->find(1);
-        $configDeductGroup = $configRepository->find(2);
-        $deductGroups = unserialize($configDeductGroup->getValue());
-        $deductGroups = is_array($deductGroups) ? $deductGroups : [];
-
-
         $employees = $employeeRepository->findAll();
+
+        $calendars = [];
+
         foreach ($employees as $employee) {
-            if ($employee->getDateLogs()->count() == 0) {
-                $overtimeData = [];
-                $dateTrackData = $trackCalculator->calculate($overtimeData, $employee, $deductGroups, intval($config->getValue()));
-                if ($dateTrackData) {
-                    $dateTrackManager->bulk($employee, $dateTrackData, $overtimeData);
-                }
-
-            }
+            $calendars[$employee->getId()] = $dateTrackManager->createCalendarData($employee);
         }
-        $this->addFlash('success', 'Date log was calculated');
 
-        return $this->redirectToRoute('app_admin_time_track');
+        //dd($calendars);
+        $exporter->export($employees, $calendars);
+
+
     }
+
+    private function createSpread($configRepository, $importDir)
+    {
+        $thisMonth = date('m-Y');
+        $configMonth = $configRepository->find(3);
+        $importList = unserialize($configMonth ->getValue());
+        $fileName = $importList[$thisMonth];
+        return  IOFactory::load($importDir . "/". $fileName);
+    }
+
+
 
 //    /**
 //     * @Route("/admin/time_track/employee/{id}",name="app_admin_time_track_employeee")

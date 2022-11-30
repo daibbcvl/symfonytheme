@@ -19,9 +19,12 @@
 
                         </form>
                         <ul class="nav navbar-right panel_toolbox">
-                            <li><a href="{{ path('app_admin_time_track_create') }}" class="btn btn-success">Tạo dữ liệu</a>
+                            <li><a href="{{ path('app_admin_time_track_create') }}" class="btn btn-success">Tạo dữ
+                                    liệu</a>
                             </li>
                             <li><a href="{{ path('app_admin_date_track_bulk') }}" class="btn btn-success">Tính công</a>
+                            </li>
+                            <li><a href="{{ path('app_admin_time_track_download') }}" class="btn btn-success">Download</a>
                             </li>
                             <li><a href="{{ path('app_admin_reset') }}" class="btn btn-success">Reset</a>
                             </li>
@@ -31,71 +34,57 @@
                     <div class="x_content">
                         <div class="row">
 
-                            <table id="example" class="display table table-striped table-bordered dataminetables table-responsive"  >
+                            <table id="example"
+                                   class="display table table-striped table-bordered dataminetables table-responsive">
                                 <thead>
-                                <th>Ma Nhan Vien</th>
-                                <th>Ten</th>
-                                <th>Phong</th>
-                                <th>1</th>
-                                <th>2</th>
-                                <th>3</th>
-                                <th>4</th>
-                                <th>5</th>
-                                <th>6</th>
-                                <th>7</th>
-                                <th>8</th>
-                                <th>9</th>
-                                <th>10</th>
-                                <th>11</th>
-                                <th>12</th>
-                                <th>13</th>
-                                <th>14</th>
-                                <th>15</th>
-                                <th>16</th>
-                                <th>17</th>
-                                <th>18</th>
-                                <th>19</th>
-                                <th>20</th>
-                                <th>21</th>
-                                <th>22</th>
-                                <th>23</th>
-                                <th>24</th>
-                                <th>25</th>
-                                <th>26</th>
-                                <th>27</th>
-                                <th>28</th>
-                                <th>29</th>
-                                <th>30</th>
-                                <th>31</th>
-                                <th>TC</th>
+                                <tr>
+                                    <th>Ma Nhan Vien</th>
+                                    <th>Ten</th>
+                                    <th>Phong</th>
+
+                                    {% for i in range(1,31) %}
+
+                                        <th {% if  dates[i] == 'CN' %} class="bg-red" {% endif %}>{{ i }} <br/>
+                                            {{ dates[i] }}
+                                        </th>
+                                    {% endfor %}
+                                    <th>TC</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                {% for employee in employees  %}
+                                {% for employee in employees %}
 
 
-                                    <tr>
-                                        <td><a href="{{ path('app_admin_date_log_employee_index', {id:employee.id}) }}">{{ employee.employeeCode }}</a></td>
-                                        <td>{{ employee.name }}</td>
-                                        <td>{{ employee.department }}</td>
-                                        {% set sum = 0 %}
-                                        {% for i in range(1,31) %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ path('app_admin_date_log_employee_index', {id:employee.id}) }}">{{ employee.employeeCode }}</a>
+                                    </td>
+                                    <td>{{ employee.name }}</td>
+                                    <td>{{ employee.department }}</td>
+                                    {% set sum = 0 %}
+                                    {% for i in range(1,31) %}
 
-                                            {% if calendars[employee.id][i].id is defined %}
-                                                <td {% if calendars[employee.id][i].overtime %} class="bg-green" {% endif %}>
-                                              <a  href="{{ path('app_admin_date_log_edit', {id:calendars[employee.id][i].id}) }}">  {{ (calendars[employee.id][i].value/60)|round(0, 'floor') }}h {{ (calendars[employee.id][i].value%60)|round(0,) }}p  </a>
-                                                {% set sum = sum + calendars[employee.id][i].value %}
-                                                </td>
+                                        {% if calendars[employee.id][i].id is defined %}
+                                            <td  class="{% if calendars[employee.id][i].overtime %}bg-green {% endif %}{% if  dates[i] == 'CN' %}border border-danger{% endif %}">
+                                                <a href="{{ path('app_admin_date_log_edit', {id:calendars[employee.id][i].id}) }}">  {{ (calendars[employee.id][i].value/60)|round(0, 'floor') }}
+                                                    h {{ (calendars[employee.id][i].value%60)|round(0,) }}p </a>
+                                                {%  if (dates[i] == 'CN') %}
+                                                      {% set sum = sum + calendars[employee.id][i].value * 2 %}
+                                                   {% else %}
+                                                       {% set sum = sum + calendars[employee.id][i].value %}
+                                                {% endif %}
+                                            </td>
 
-                                            {% else %}
-                                              <td></td>
-                                            {% endif %}
+                                        {% else %}
+                                            <td></td>
+                                        {% endif %}
 
 
 
 
-                                        {% endfor %}
-                                        <td> {{ (sum/60)|round(0, 'floor') }}h {{ (sum%60)|round(0,) }}p</td>
-                                    </tr>
+                                    {% endfor %}
+                                    <td> {{ (sum/60)|round(0, 'floor') }}h {{ (sum%60)|round(0,) }}p</td>
+                                </tr>
                                 </tbody>
 
                                 {% endfor %}

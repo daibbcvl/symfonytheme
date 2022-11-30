@@ -19,6 +19,7 @@ use App\Import\DateTrackManager;
 use App\Import\ImportManager;
 use App\Import\TrackCalculator;
 use App\Repository\BlogPostRepository;
+use App\Repository\ConfigRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\HistoriqueRepository;
 use App\Repository\TimeTrackRepository;
@@ -51,12 +52,10 @@ class DateLogController extends BaseController
      * @Route("/admin/date_log/edit/{id}",name="app_admin_date_log_edit")
      * @IsGranted("ROLE_WRITER")
      */
-    public function edit(Request $request, DateLog $dateLog, TimeTrackRepository $timeTrackRepository, EntityManagerInterface  $entityManager)
+    public function edit(Request $request, DateLog $dateLog, TimeTrackRepository $timeTrackRepository, EntityManagerInterface $entityManager)
     {
 
         $timeTracks = $timeTrackRepository->findBy(['date' => $dateLog->getDate(), 'employeeCode' => $dateLog->getEmployeeCode()]);
-       // dd($timeTracks);
-
         $dateLogModel = new DateLogEditModel();
         $dateLogModel = $dateLogModel->createFromDateLog($dateLog, $dateLogModel);
 
@@ -77,13 +76,48 @@ class DateLogController extends BaseController
         }
 
 
-
         return $this->render("admin/date_log/index.html.twig", [
             'dateLog' => $dateLog,
             'timeTracks' => $timeTracks,
             'form' => $form->createView(),
         ]);
 
+    }
+
+    /**
+     * @Route("/admin/date_track/bulk",name="app_admin_date_track_bulk")
+     * @IsGranted("ROLE_WRITER")
+     */
+    public function calculateDateLog(
+        EmployeeRepository $employeeRepository,
+        ConfigRepository   $configRepository,
+        TrackCalculator    $trackCalculator,
+        DateTrackManager   $dateTrackManager): \Symfony\Component\HttpFoundation\RedirectResponse
+    {
+
+        ini_set('max_execution_time', '300'); //300 seconds = 5 minutes
+        set_time_limit(300);
+
+        $config = $configRepository->find(1);
+        $configDeductGroup = $configRepository->find(2);
+        $deductGroups = unserialize($configDeductGroup->getValue());
+        $deductGroups = is_array($deductGroups) ? $deductGroups : [];
+
+
+        $employees = $employeeRepository->findAll();
+        foreach ($employees as $employee) {
+            if ($employee->getDateLogs()->count() == 0) {
+                $overtimeData = [];
+                $dateTrackData = $trackCalculator->calculate($overtimeData, $employee, $deductGroups, intval($config->getValue()));
+                if ($dateTrackData) {
+                    $dateTrackManager->bulk($employee, $dateTrackData, $overtimeData);
+                }
+
+            }
+        }
+        $this->addFlash('success', 'Date log was calculated');
+
+        return $this->redirectToRoute('app_admin_time_track');
     }
 
 
