@@ -39,15 +39,16 @@ class DateTrackManager
     }
 
 
-    public function createCalendarData(Employee $employee)
+    public function createCalendarData(Employee $employee, $monthStr)
     {
+        //dd($monthStr);
         $result = [];
         for($i = 1; $i<=31; $i++)
         {
             $result[$i] =  null;
             foreach ($employee->getDateLogs() as $dateLog)
             {
-                if($dateLog->getDate()->format("d") == $i)
+                if($dateLog->getDate()->format("d-m-Y") == str_pad($i, 2, '0', STR_PAD_LEFT).'-'.$monthStr)
                 {
                     $result[$i]["value"] = $dateLog->getTotalMinutes();
                     $result[$i]["id"] = $dateLog->getId();

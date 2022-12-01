@@ -40,7 +40,7 @@ class ConfigType extends AbstractType
                 'multiple' => true,
             ])
             ->add('month', ChoiceType::class, [
-                'choices' => $this->createMonthData(),
+                'choices' => ConfigType::createMonthData(),
             ])
             ->add('fileName', FileType::class, [
                 'label' => 'Excel file',
@@ -63,7 +63,7 @@ class ConfigType extends AbstractType
         ]);
     }
 
-    private function createMonthData()
+    public static function createMonthData()
     {
         $results = [];
 

@@ -15,27 +15,33 @@
                 <div class="x_panel">
                     <div class="x_title">
                         <h2>Time track</h2>
-                        <form>
-
-                        </form>
                         <ul class="nav navbar-right panel_toolbox">
-                            <li><a href="{{ path('app_admin_time_track_create') }}" class="btn btn-success">Tạo dữ
+                            <li><a href="{{ path('app_admin_time_track_create',  {month:month}) }}" class="btn btn-success">Tạo dữ
                                     liệu</a>
                             </li>
-                            <li><a href="{{ path('app_admin_date_track_bulk') }}" class="btn btn-success">Tính công</a>
+                            <li><a href="{{ path('app_admin_date_track_bulk',  {month:month}) }}" class="btn btn-success">Tính công</a>
                             </li>
-                            <li><a href="{{ path('app_admin_time_track_download') }}" class="btn btn-success">Download</a>
+                            <li><a href="{{ path('app_admin_time_track_download', {month:month}) }}" class="btn btn-success">Download</a>
                             </li>
                             <li><a href="{{ path('app_admin_reset') }}" class="btn btn-success">Reset</a>
                             </li>
                         </ul>
+                        {% block quick_sidebar_content %}
+                            {{ form_start(form) }}
+                            {{ form_widget(form) }}
+                            <button class="btn btn-primary m-btn m-btn--custom m--margin-bottom-20" type="submit">
+                                <i class="flaticon-search"></i>
+                                Search
+                            </button>
+                            {{ form_end(form) }}
+                        {% endblock %}
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
                         <div class="row">
 
                             <table id="example"
-                                   class="display table table-striped table-bordered dataminetables table-responsive">
+                                   class="display table table-striped table-bordered  table-responsive">
                                 <thead>
                                 <tr>
                                     <th>Ma Nhan Vien</th>

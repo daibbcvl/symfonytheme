@@ -9,6 +9,7 @@ use App\Entity\DateLog;
 use App\Entity\Employee;
 use App\Entity\Historique;
 use App\Entity\OldPost;
+use App\Entity\TimeTrack;
 use App\Form\BlogPostEditFormType;
 use App\Form\BlogPostFormType;
 use App\Form\DateLogEditFormType;
@@ -89,12 +90,14 @@ class DateLogController extends BaseController
      * @IsGranted("ROLE_WRITER")
      */
     public function calculateDateLog(
+        Request            $request,
         EmployeeRepository $employeeRepository,
         ConfigRepository   $configRepository,
         TrackCalculator    $trackCalculator,
         DateTrackManager   $dateTrackManager): \Symfony\Component\HttpFoundation\RedirectResponse
     {
 
+        $month = $request->get('month');
         ini_set('max_execution_time', '300'); //300 seconds = 5 minutes
         set_time_limit(300);
 
@@ -106,9 +109,17 @@ class DateLogController extends BaseController
 
         $employees = $employeeRepository->findAll();
         foreach ($employees as $employee) {
-            if ($employee->getDateLogs()->count() == 0) {
+            $count =  $employee->getDateLogs()->filter(function (DateLog $dateLog) use ($month) {
+                return $dateLog->getDate()->format('m-Y') == $month;
+            })->count();
+
+            $timeCount =  $employee->getTimeTracks()->filter(function (TimeTrack $timeTrack) use ($month) {
+                return $timeTrack->getDate()->format('m-Y') == $month;
+            })->count();
+
+            if ($count == 0 && $timeCount != 0) {
                 $overtimeData = [];
-                $dateTrackData = $trackCalculator->calculate($overtimeData, $employee, $deductGroups, intval($config->getValue()));
+                $dateTrackData = $trackCalculator->calculate($overtimeData, $employee, $deductGroups, $month, intval($config->getValue()));
                 if ($dateTrackData) {
                     $dateTrackManager->bulk($employee, $dateTrackData, $overtimeData);
                 }

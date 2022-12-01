@@ -14,6 +14,7 @@ use App\Form\BlogPostFormType;
 use App\Form\ConfigType;
 use App\Form\EmployeeDateFormType;
 use App\Form\OldPostFormType;
+use App\Form\TimeTrackSearchType;
 use App\Import\DateTrackManager;
 use App\Import\ImportManager;
 use App\Import\Reader;
@@ -25,6 +26,7 @@ use App\Repository\EmployeeRepository;
 use App\Repository\HistoriqueRepository;
 use App\Services\UploadHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use ErrorException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Psr\Container\ContainerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -36,29 +38,33 @@ use Symfony\Component\Routing\Annotation\Route;
 class TimeTrackController extends BaseController
 {
     const WEEDKDAYS = [
-            'Sunday' => 'CN',
-            'Monday' => 'T2',
-            'Tuesday' => 'T3',
-            'Wednesday' => 'T4',
-            'Thursday' => 'T5',
-            'Friday' => 'T6',
-            'Saturday' => 'T7'
-        ];
+        'Sunday' => 'CN',
+        'Monday' => 'T2',
+        'Tuesday' => 'T3',
+        'Wednesday' => 'T4',
+        'Thursday' => 'T5',
+        'Friday' => 'T6',
+        'Saturday' => 'T7'
+    ];
 
 
     /**
      * @Route("/admin/time_track",name="app_admin_time_track")
      * @IsGranted("ROLE_WRITER")
      */
-    public function index(ImportManager $importManager, DateTrackManager $dateTrackManager, EmployeeRepository $employeeRepository, string $importDir)
+    public function index(Request $request, DateTrackManager $dateTrackManager, EmployeeRepository $employeeRepository)
     {
+        $form = $this->createForm(TimeTrackSearchType::class, null, ['method' => 'GET']);
+        $form->handleRequest($request);
+        $formData = $form->getData() ?: [];
+        $monthStr = isset($formData['month']) ? $formData['month'] : date('m') . '-' . date('Y');
+        //dd($monthStr);
         $dates = [];
-        $month = date('m');
-        $year = date('Y');
+
         $weekdays = self::WEEDKDAYS;
         for ($i = 1; $i <= 31; $i++) {
-            $todayString = "{$year}-{$month}-{$i}";
-            $date = \DateTime::createFromFormat('Y-m-d', $todayString);
+            $todayString = "{$monthStr}-{$i}";
+            $date = \DateTime::createFromFormat('m-Y-d', $todayString);
             $dates[$i] = $weekdays[$date->format('l')];
         }
 
@@ -68,15 +74,17 @@ class TimeTrackController extends BaseController
         $calendars = [];
 
         foreach ($employees as $employee) {
-            $calendars[$employee->getId()] = $dateTrackManager->createCalendarData($employee);
+            $calendars[$employee->getId()] = $dateTrackManager->createCalendarData($employee, $monthStr);
         }
 
 
-        return $this->render("admin/time/index.html.twig",
-            ['employees' => $employees,
-                'calendars' => $calendars,
-                'dates' => $dates
-            ]);
+        return $this->render("admin/time/index.html.twig", [
+            'employees' => $employees,
+            'calendars' => $calendars,
+            'dates' => $dates,
+            'form' => $form->createView(),
+            'month' => $monthStr
+        ]);
     }
 
     /**
@@ -84,24 +92,29 @@ class TimeTrackController extends BaseController
      * @IsGranted("ROLE_WRITER")
      */
     public function createTimeTrack(
+        Request             $request,
         ImportManager       $importManager,
         EmployeeRepository  $employeeRepository,
-        ConfigRepository $configRepository,
+        ConfigRepository    $configRepository,
         MessageBusInterface $bus,
         string              $importDir)
     {
 
+        $month = $request->get('month');
 
-        $spreadsheet = $this->createSpread($configRepository, $importDir);
 
-        if (!empty($spreadsheet)) {
+        $spreadsheet = $this->createSpread($configRepository, $importDir, $month);
+
+        if ($spreadsheet) {
             $contents = $spreadsheet->getActiveSheet()->toArray();
 
             $data = serialize($contents);
 
             $bus->dispatch(new ImportMessage($data));
         } else {
-            //$this->invalidReq('Excel file type is invalid.');
+            $this->addFlash('error', 'No data for ' . $month);
+            return $this->redirectToRoute('app_admin_time_track');
+
         }
 
         $this->addFlash('success', 'Time track was calculated');
@@ -114,20 +127,22 @@ class TimeTrackController extends BaseController
      * @IsGranted("ROLE_WRITER")
      */
     public function download(
-     ImportManager       $importManager,
-        EmployeeRepository  $employeeRepository,
-        ConfigRepository $configRepository,
-        DateTrackManager $dateTrackManager,
-        TimeTrackExporter $exporter,
-        string              $importDir)
+        Request            $request,
+        ImportManager      $importManager,
+        EmployeeRepository $employeeRepository,
+        ConfigRepository   $configRepository,
+        DateTrackManager   $dateTrackManager,
+        TimeTrackExporter  $exporter,
+        string             $importDir)
     {
 
+        $month = $request->get('month');
         $employees = $employeeRepository->findAll();
 
         $calendars = [];
 
         foreach ($employees as $employee) {
-            $calendars[$employee->getId()] = $dateTrackManager->createCalendarData($employee);
+            $calendars[$employee->getId()] = $dateTrackManager->createCalendarData($employee, $month);
         }
 
         //dd($calendars);
@@ -136,13 +151,18 @@ class TimeTrackController extends BaseController
 
     }
 
-    private function createSpread($configRepository, $importDir)
+    private function createSpread($configRepository, $importDir, $thisMonth)
     {
-        $thisMonth = date('m-Y');
         $configMonth = $configRepository->find(3);
-        $importList = unserialize($configMonth ->getValue());
+        $importList = unserialize($configMonth->getValue());
+        if (!isset($importList[$thisMonth])) {
+            return false;
+        }
         $fileName = $importList[$thisMonth];
-        return  IOFactory::load($importDir . "/". $fileName);
+        if (!file_exists($importDir . "/" . $fileName)) {
+            return false;
+        }
+        return IOFactory::load($importDir . "/" . $fileName);
     }
 
 

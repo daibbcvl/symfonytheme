@@ -84,7 +84,8 @@ class AdminController extends AbstractController
                     //$configDeductModel->fileName = $newFilename;
 
                 } catch (FileException $e) {
-
+                    $this->addFlash('error', 'Upload file failed');
+                    return $this->redirectToRoute('app_admin_index');
                 }
             }
 
