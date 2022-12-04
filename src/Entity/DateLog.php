@@ -12,15 +12,15 @@ class DateLog
 {
     const TYPE_DEFAULT_LEAVE = 'NGAY_THUONG';
     const TYPE_ANNUAL_LEAVE = 'PHEP_NAM';
-    const TYPE_WEDDING_LEAVE = 'NGHI_CUOI';
-    const TYPE_MATERNITY_LEAVE = 'NGHI_THAI_SAN';
+    const TYPE_WEDDING_LEAVE = 'HIEU_HY';
+    const TYPE_FUNERAL_LEAVE = 'TANG';
     const TYPE_OTHER_LEAVE = 'KHAC';
 
     const TYPES = [
         self::TYPE_DEFAULT_LEAVE =>  self::TYPE_DEFAULT_LEAVE,
         self::TYPE_ANNUAL_LEAVE =>  self::TYPE_ANNUAL_LEAVE,
         self::TYPE_WEDDING_LEAVE =>  self::TYPE_WEDDING_LEAVE,
-        self::TYPE_MATERNITY_LEAVE =>  self::TYPE_MATERNITY_LEAVE,
+        self::TYPE_FUNERAL_LEAVE =>  self::TYPE_FUNERAL_LEAVE,
         self::TYPE_OTHER_LEAVE =>  self::TYPE_OTHER_LEAVE,
     ];
 

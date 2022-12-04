@@ -57,6 +57,7 @@ class DateLogController extends BaseController
     {
 
         $timeTracks = $timeTrackRepository->findBy(['date' => $dateLog->getDate(), 'employeeCode' => $dateLog->getEmployeeCode()]);
+        //dd($timeTracks);
         $dateLogModel = new DateLogEditModel();
         $dateLogModel = $dateLogModel->createFromDateLog($dateLog, $dateLogModel);
 

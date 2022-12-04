@@ -137,6 +137,8 @@ class TimeTrackController extends BaseController
     {
 
         $month = $request->get('month');
+
+        //dd($month);
         $employees = $employeeRepository->findAll();
 
         $calendars = [];
@@ -146,7 +148,7 @@ class TimeTrackController extends BaseController
         }
 
         //dd($calendars);
-        $exporter->export($employees, $calendars);
+        $exporter->export($employees, $calendars, $month);
 
 
     }

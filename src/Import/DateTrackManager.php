@@ -53,6 +53,7 @@ class DateTrackManager
                     $result[$i]["value"] = $dateLog->getTotalMinutes();
                     $result[$i]["id"] = $dateLog->getId();
                     $result[$i]["overtime"] = $dateLog->getOvertime();
+                    $result[$i]["type"] = $dateLog->getType();
                 }
             }
         }
